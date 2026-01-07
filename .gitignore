@@ -1,0 +1,19 @@
+# env
+.env
+
+# node
+node_modules/
+
+# build
+dist/
+
+# netlify local
+.netlify/
+
+# logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
