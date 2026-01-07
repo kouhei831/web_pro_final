@@ -23,6 +23,14 @@ function json(statusCode, body) {
   };
 }
 
+function weekdayKeyJST(iso) {
+  const s = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Tokyo",
+    weekday: "short",
+  }).format(new Date(iso)); 
+  return s;
+}
+
 exports.handler = async (event) => {
   try {
     if (event.httpMethod !== "GET") {
@@ -39,13 +47,13 @@ exports.handler = async (event) => {
 
     const total = data.length;
 
-    const keys = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const byWeekday = { Sun: 0, Mon: 0, Tue: 0, Wed: 0, Thu: 0, Fri: 0, Sat: 0 };
 
     for (const row of data) {
-      const d = new Date(row.created_at);
-      const idx = d.getDay();
-      byWeekday[keys[idx]]++;
+      const key = weekdayKeyJST(row.created_at);
+      if (key in byWeekday) {
+        byWeekday[key]++;
+      }
     }
 
     return json(200, { total, byWeekday });
