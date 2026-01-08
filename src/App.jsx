@@ -15,6 +15,8 @@ import StatsPanel from "./components/StatsPanel";
 
 import { listLogs, createLog, deleteLog } from "./lib/api";
 
+import MapPanel from "./components/MapPanel";
+
 export default function App() {
   const [logs, setLogs] = useState([]);
   const [loadStatus, setLoadStatus] = useState("loading"); // loading | ready | error
@@ -78,6 +80,7 @@ export default function App() {
           <Divider />
 
           <StatsPanel />
+          <MapPanel logs={logs} />
 
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography variant="body2">保存件数: {logs.length}</Typography>

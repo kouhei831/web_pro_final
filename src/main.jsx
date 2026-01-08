@@ -4,6 +4,8 @@ import App from "./App";
 import CssBaseline from "@mui/material/CssBaseline";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 
+import "leaflet/dist/leaflet.css";
+
 const theme = createTheme();
 
 createRoot(document.querySelector("#content")).render(

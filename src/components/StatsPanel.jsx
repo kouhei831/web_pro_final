@@ -16,7 +16,8 @@ import {
   CartesianGrid,
 } from "recharts";
 
-function toChartData(byWeekday) {
+// 曜日別
+function toWeekdayChartData(byWeekday) {
   const labels = [
     { key: "Sun", label: "Sun" },
     { key: "Mon", label: "Mon" },
@@ -33,11 +34,21 @@ function toChartData(byWeekday) {
   }));
 }
 
+// 天気カテゴリ別
+function toWeatherChartData(byWeatherCategory) {
+  const order = ["Clear", "Cloudy", "Rain", "Snow", "Fog", "Thunder", "Other", "Unknown"];
+  return order.map((k) => ({
+    weather: k,
+    count: Number(byWeatherCategory?.[k] ?? 0),
+  }));
+}
+
 export default function StatsPanel() {
   const [status, setStatus] = useState("loading"); // loading | ready | error
   const [error, setError] = useState("");
   const [total, setTotal] = useState(0);
   const [byWeekday, setByWeekday] = useState(null);
+  const [byWeatherCategory, setByWeatherCategory] = useState(null);
 
   async function load() {
     setStatus("loading");
@@ -53,6 +64,7 @@ export default function StatsPanel() {
       const data = await res.json();
       setTotal(Number(data.total ?? 0));
       setByWeekday(data.byWeekday ?? null);
+      setByWeatherCategory(data.byWeatherCategory ?? null);
       setStatus("ready");
     } catch (e) {
       setError(String(e?.message ?? e));
@@ -64,7 +76,15 @@ export default function StatsPanel() {
     load();
   }, []);
 
-  const chartData = useMemo(() => toChartData(byWeekday), [byWeekday]);
+  const weekdayChartData = useMemo(
+    () => toWeekdayChartData(byWeekday),
+    [byWeekday]
+  );
+
+  const weatherChartData = useMemo(
+    () => toWeatherChartData(byWeatherCategory),
+    [byWeatherCategory]
+  );
 
   return (
     <Paper sx={{ p: 2 }}>
@@ -86,15 +106,32 @@ export default function StatsPanel() {
         {status === "error" && <Alert severity="error">{error}</Alert>}
 
         {status === "ready" && (
-          <Stack spacing={1}>
+          <Stack spacing={2}>
             <Typography variant="body2">総ログ数: {total}</Typography>
-            <Typography variant="body2">曜日別ログ数</Typography>
 
+            {/* 曜日別 */}
+            <Typography variant="body2">曜日別ログ数</Typography>
             <div style={{ width: "100%", height: 260 }}>
               <ResponsiveContainer>
-                <BarChart data={chartData}>
+                <BarChart data={weekdayChartData}>
                   <CartesianGrid strokeDasharray="3 3" />
                   <XAxis dataKey="weekday" />
+                  <YAxis allowDecimals={false} />
+                  <Tooltip />
+                  <Bar dataKey="count" />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* 天気カテゴリ別 */}
+            <Typography variant="body2" sx={{ mt: 2 }}>
+              天気別ログ数
+            </Typography>
+            <div style={{ width: "100%", height: 260 }}>
+              <ResponsiveContainer>
+                <BarChart data={weatherChartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="weather" />
                   <YAxis allowDecimals={false} />
                   <Tooltip />
                   <Bar dataKey="count" />
