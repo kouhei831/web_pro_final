@@ -14,10 +14,15 @@
         "npm:@emotion/react@^11.14.0",
         "npm:@emotion/styled@^11.14.1",
         "npm:@mui/material@^7.3.6",
+        "npm:@supabase/supabase-js@^2.90.0",
         "npm:@vitejs/plugin-react@^4.3.2",
+        "npm:dotenv@^17.2.3",
+        "npm:leaflet@^1.9.4",
         "npm:netlify-cli@^23.13.1",
         "npm:react-dom@^18.3.1",
+        "npm:react-leaflet@^4.2.1",
         "npm:react@^18.3.1",
+        "npm:recharts@^3.6.0",
         "npm:vite@^5.4.8"
       ]
     }

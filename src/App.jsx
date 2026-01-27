@@ -12,15 +12,30 @@ import AppHeader from "./components/AppHeader";
 import LogForm from "./components/LogForm";
 import LogList from "./components/LogList";
 import StatsPanel from "./components/StatsPanel";
+import MapPanel from "./components/MapPanel";
 
 import { listLogs, createLog, deleteLog } from "./lib/api";
-
-import MapPanel from "./components/MapPanel";
 
 export default function App() {
   const [logs, setLogs] = useState([]);
   const [loadStatus, setLoadStatus] = useState("loading"); // loading | ready | error
   const [error, setError] = useState("");
+
+  // ===== 初回アクセスガイド表示用 =====
+  const [showGuide, setShowGuide] = useState(false);
+
+  useEffect(() => {
+    const seen = localStorage.getItem("locationGuideSeen");
+    if (!seen) {
+      setShowGuide(true);
+    }
+  }, []);
+
+  function handleCloseGuide() {
+    localStorage.setItem("locationGuideSeen", "true");
+    setShowGuide(false);
+  }
+  // ==================================
 
   async function reload() {
     setLoadStatus("loading");
@@ -71,6 +86,25 @@ export default function App() {
 
       <Container maxWidth="md" sx={{ py: 3 }}>
         <Stack spacing={3}>
+          {/* ===== 初回アクセス時ガイド ===== */}
+          {showGuide && (
+            <Alert
+              severity="info"
+              action={
+                <Button color="inherit" size="small" onClick={handleCloseGuide}>
+                  OK
+                </Button>
+              }
+            >
+              このアプリでは、位置情報をそのまま保存せず、
+              <br />
+              <strong>約300m単位に丸めて</strong>表示・保存しています。
+              <br />
+              プライバシーに配慮した設計です。
+            </Alert>
+          )}
+          {/* =============================== */}
+
           {error && <Alert severity="error">{error}</Alert>}
 
           <Paper sx={{ p: 2 }}>

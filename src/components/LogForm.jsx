@@ -10,19 +10,34 @@ import { getCurrentPosition } from "../lib/geolocation";
 import { fileToDataUrl } from "../lib/image";
 import { fetchCurrentWeather } from "../lib/weather";
 
+const GRID_DEG = 0.003; 
+
+function quantizeLatLng(lat, lng) {
+  return {
+    lat: Math.round(lat / GRID_DEG) * GRID_DEG,
+    lng: Math.round(lng / GRID_DEG) * GRID_DEG,
+  };
+}
+
 export default function LogForm({ onAdd }) {
   const [note, setNote] = useState("");
+
+  // 保存・表示用（粗い）
   const [lat, setLat] = useState(null);
   const [lng, setLng] = useState(null);
+
+  // 天気取得用（生の座標）
+  const [rawLat, setRawLat] = useState(null);
+  const [rawLng, setRawLng] = useState(null);
 
   const [imageDataUrl, setImageDataUrl] = useState("");
   const [imageName, setImageName] = useState("");
 
-  const [status, setStatus] = useState("idle"); // idle | locating | ready | error
+  const [status, setStatus] = useState("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
   const [weather, setWeather] = useState(null);
-  const [weatherStatus, setWeatherStatus] = useState("idle"); // idle | loading | ready | error
+  const [weatherStatus, setWeatherStatus] = useState("idle"); 
   const [weatherError, setWeatherError] = useState("");
 
   async function handleGetLocation() {
@@ -34,17 +49,25 @@ export default function LogForm({ onAdd }) {
 
     try {
       const pos = await getCurrentPosition();
-      const nextLat = pos.coords.latitude;
-      const nextLng = pos.coords.longitude;
 
-      setLat(nextLat);
-      setLng(nextLng);
+      const nextRawLat = pos.coords.latitude;
+      const nextRawLng = pos.coords.longitude;
+
+      // 生の座標を保持（天気用）
+      setRawLat(nextRawLat);
+      setRawLng(nextRawLng);
+
+      // 表示・保存用は約300mで丸める
+      const q = quantizeLatLng(nextRawLat, nextRawLng);
+      setLat(q.lat);
+      setLng(q.lng);
+
       setStatus("ready");
 
-      // 天気取得
+      // 天気取得（生の座標で）
       setWeatherStatus("loading");
       try {
-        const w = await fetchCurrentWeather(nextLat, nextLng);
+        const w = await fetchCurrentWeather(nextRawLat, nextRawLng);
         setWeather(w);
         setWeatherStatus("ready");
       } catch (err) {
@@ -118,9 +141,9 @@ export default function LogForm({ onAdd }) {
       id: crypto.randomUUID(),
       createdAt: now.toISOString(),
       note: note.trim(),
-      location: { lat, lng },
+      location: { lat, lng }, // 保存は粗い方
       image: { dataUrl: imageDataUrl, name: imageName || "image" },
-      weather: weather, // 天気情報（あれば）
+      weather: weather,
     };
 
     onAdd(newLog);
@@ -129,6 +152,8 @@ export default function LogForm({ onAdd }) {
     setNote("");
     setLat(null);
     setLng(null);
+    setRawLat(null);
+    setRawLng(null);
     setImageDataUrl("");
     setImageName("");
     setWeather(null);
@@ -166,7 +191,7 @@ export default function LogForm({ onAdd }) {
 
           {typeof lat === "number" && typeof lng === "number" && (
             <Typography variant="body2">
-              lat: {lat.toFixed(5)} / lng: {lng.toFixed(5)}
+              lat {lat.toFixed(3)} / lng {lng.toFixed(3)}  ※表示は約300m単位
             </Typography>
           )}
         </Stack>
@@ -176,9 +201,7 @@ export default function LogForm({ onAdd }) {
           <Typography variant="subtitle2">天気（現在地）</Typography>
 
           {weatherStatus === "idle" && (
-            <Typography variant="body2">
-              位置情報から天気を表示します
-            </Typography>
+            <Typography variant="body2">位置情報から天気を表示します</Typography>
           )}
 
           {weatherStatus === "loading" && (
@@ -196,8 +219,7 @@ export default function LogForm({ onAdd }) {
 
           {weatherStatus === "ready" && weather && (
             <Typography variant="body2">
-              {weather.label} / {weather.temperatureC}℃ / 風{" "}
-              {weather.windspeed} m/s
+              {weather.label} / {weather.temperatureC}℃ / 風 {weather.windspeed} m/s
             </Typography>
           )}
         </Stack>
@@ -214,9 +236,7 @@ export default function LogForm({ onAdd }) {
             />
           </Button>
 
-          {imageName && (
-            <Typography variant="body2">選択中: {imageName}</Typography>
-          )}
+          {imageName && <Typography variant="body2">選択中: {imageName}</Typography>}
 
           {imageDataUrl && (
             <img
