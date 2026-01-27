@@ -18,24 +18,15 @@ import { listLogs, createLog, deleteLog } from "./lib/api";
 
 export default function App() {
   const [logs, setLogs] = useState([]);
-  const [loadStatus, setLoadStatus] = useState("loading"); // loading | ready | error
+  const [loadStatus, setLoadStatus] = useState("loading"); 
   const [error, setError] = useState("");
 
-  // ===== 初回アクセスガイド表示用 =====
-  const [showGuide, setShowGuide] = useState(false);
-
-  useEffect(() => {
-    const seen = localStorage.getItem("locationGuideSeen");
-    if (!seen) {
-      setShowGuide(true);
-    }
-  }, []);
+  const [showGuide, setShowGuide] = useState(true);
 
   function handleCloseGuide() {
-    localStorage.setItem("locationGuideSeen", "true");
     setShowGuide(false);
   }
-  // ==================================
+  // =======================================================
 
   async function reload() {
     setLoadStatus("loading");
@@ -86,13 +77,13 @@ export default function App() {
 
       <Container maxWidth="md" sx={{ py: 3 }}>
         <Stack spacing={3}>
-          {/* ===== 初回アクセス時ガイド ===== */}
+          {/* ===== 毎回表示するガイド ===== */}
           {showGuide && (
             <Alert
               severity="info"
               action={
                 <Button color="inherit" size="small" onClick={handleCloseGuide}>
-                  OK
+                  閉じる
                 </Button>
               }
             >
@@ -103,7 +94,7 @@ export default function App() {
               プライバシーに配慮した設計です。
             </Alert>
           )}
-          {/* =============================== */}
+          {/* ============================ */}
 
           {error && <Alert severity="error">{error}</Alert>}
 
